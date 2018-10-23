@@ -1,7 +1,8 @@
-function run_ESNEKN(alldata, trainingfraction, re_size, leakage_rate, win_scl, w_scl, ...
-    no_classes, varargin)
+function run_ESNEKN(indatafile, trainingfraction, re_size, leakage_rate, win_scl, w_scl, ...
+    varargin)
 %   function-based running for ESNEKN. Adapted from Abdulrahman
-%   Ashekmubarak's work.
+%   Ashekmubarak's work. Replaces terminal_n.m script. 
+%
 %   alldata: .mat file with the input data
 %   re_size: reservoir size (vector of sizes)
 %   leakage_rate: leakage rate for elements in reservoir (vector of rates)
@@ -10,10 +11,14 @@ function run_ESNEKN(alldata, trainingfraction, re_size, leakage_rate, win_scl, w
 %   no_classes: number of classes
 %   
 
+% values below can be changed using varargin
 %%%%%%%%%%%%%%%%%% Parameters EKMs (needs to optimised for the task at hand) %%%%%%%%%%%%%%%%%%%%%%
 % default values
 c_sent=[10000];
 g_sent=[7];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Write result to %%%%%%%%%%%%%%%%%
+outputfileprefix = 'outputfile_' ;
+
 
 i = 1 ;
 while(i<=size(varargin,2))
@@ -24,12 +29,18 @@ while(i<=size(varargin,2))
         case 'g_sent'
             g_sent =  varargin{i+1};
             i=i+1 ;
+        case 'outputfileprefix'
+            outputfileprefix =  varargin{i+1};
+            i=i+1 ;
          otherwise
             error('runESNEKN: Unknown argument %s given',varargin{i});
     end
     i=i+1 ;
 end
+outputfile=[outputfileprefix date] ;
 
+% load the dataset
+alldata = load(indatafile) ;
 % trainingfraction = 0.75 ; % now a parameter
 testfraction = 1-trainingfraction ;
 %%%%%%%%%%%%% Reading Training Files %%%%%%%%%%%%%%%%%
@@ -62,24 +73,12 @@ clear alldata ;
 no_input_dimensions=size(training_Data{1}, 1) ;
 % no_classes=5; % now a parameter
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Write result to %%%%%%%%%%%%%%%%%
-outputfile='outputfile_2018_09_13';
-
 %%%%%%%%%%%%%%%%%% Printing format %%%%%%%%%%%%%%%%%%%%%%
-newline=double(newline);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Number of runs %%%%%%%%%%%%%%%%%%%%%%%%%
 numberOfRuns=5;
 
 result=zeros(numberOfRuns,2);
-
-
-
-
-
-
 
 for i=1 : length(re_size)
     for c=1 : length(leakage_rate)
@@ -88,59 +87,33 @@ for i=1 : length(re_size)
                 for cos=1 : length (c_sent)
                     for g=1 : length (g_sent)
                         for b=1 : numberOfRuns
+                        
                             
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            %%%%%%%%%%%%%% Constructing the Network %%%%%%%%%%%%
-                            
-                            
-                            
-                            
+                            %%%%%%%%%%%%%% Constructing the Network %%%%%%%%%%%% 
                             net = Esn( re_size(i) , leakage_rate(c) , no_input_dimensions , win_scl(d_win) ,  w_scl(c_w)) ;
-                            
-                            
                             disp(['====================ESN===========================' newline]);
                             
                             disp(['Reservoir Size = ' num2str(re_size(i)) '   Leakage Rate = ' num2str(leakage_rate(c)) newline 'Input dimensions = '  num2str(no_input_dimensions) ...
-                                ' Win Scaler =  '  num2str(win_scl(d_win)) ' Wreservoir Scaler = ' num2str(w_scl(c_w))  ]);
-                            
-                            
+                                ' Win Scaler =  '  num2str(win_scl(d_win)) ' Wreservoir Scaler = ' num2str(w_scl(c_w))  ]);   
                             disp(['=================================================' newline]);
-                            
-                            
+
                             %%%%%%%%%%%%%% Passing the training Data to the Network and Collecting the reservoir's responce on reservoirrResponceTraining %%%%%%%%%%%%
-                            
-                            
-                            
-                            
                             disp([newline 'Feeding the training data to the network' newline]);
                             istrain=true;
                             [reservoirrResponceTraining]=net.runReservoir(training_Data,istrain);
-                            
-                            
+                                                      
                             %%%%%%%%%%%%%% Passing the Test Data to the Network and Collecting the reservoir's responce on reservoirrResponceTest %%%%%%%%%%%%
                             disp([newline 'Feeding the Test data to the network ' newline]);
                             
                             istrain=false;
                             [reservoirrResponceTest]=net.runReservoir(testing_Data,istrain);
                             
-   
                             %%%%%%%%%%%%%%%%%%%%%% ESNEKMs  %%%%%%%%%%%%%%%
-                       
-     
-                            
-                           
-                            
+ 
                             disp([newline '====================ESNEKMs===========================' newline]);
                             
                             dlmwrite('train_Data_extreme.csv', [training_label reservoirrResponceTraining]);
                             dlmwrite('test_Data_extreme.csv', [testing_label reservoirrResponceTest]);
-                            
                             
                             [ accuracyTraining_ESNEKMs, accuracyTesting_ESNEKMs, conf_matrix] = ...
                                 elm_kernel('train_Data_extreme.csv', 'test_Data_extreme.csv', 1, c_sent(cos), 'RBF_kernel',g_sent(g));
@@ -152,6 +125,7 @@ for i=1 : length(re_size)
                             disp([' C =     ' num2str(c_sent(cos))]);
                             disp([' g =     ' num2str(g_sent(g))]);
                             
+                            % temporary
                             conf_matrix
                              disp([newline '==================== Run : ' num2str(b) ' / '  num2str(numberOfRuns) '    Ends ===========================' newline]);
                             result(b,1:2)=[accuracyTraining_ESNEKMs,accuracyTesting_ESNEKMs];
@@ -159,15 +133,6 @@ for i=1 : length(re_size)
                         
 
                   %%%%%%%%%%%%%%%%%%% EKMs %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-                         
-
-                                                   
-                
-                
-                
-                
                 %%%%%%%%%%%%%%%%%%% Saving the Result %%%%%%%%%%%%%%
                 average_train_EKM=mean(result(:,1));
                 std_train_EKM=std(result(:,1));
@@ -182,19 +147,11 @@ for i=1 : length(re_size)
                 fprintf (fid, '%4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.4f \n',...
                     average_train_EKM,std_train_EKM,average_test_EKM,std_test_EKM,...
                    re_size(i),leakage_rate(c),win_scl(d_win),w_scl(c_w),c_sent(cos),g_sent(g));
-                
-                
-                
-                
-                
-                
+
                 fclose(fid);
                 
                 result=zeros(numberOfRuns,2);
-                
-                
-                
-                
+
                     end
                 end
             end
