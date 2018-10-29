@@ -1,3 +1,7 @@
 >> nfiles = create_AN_files(stimulibasedir, '', '', '000filelist.txt', 0, 'bmsigdir', 'ANsigdir') ;
 >> nfiles = findsegments_all(stimulibasedir, [stimulibasedir '/000filelist.txt'], [stimulibasedir '/segments']) ;
 >> convertAN([stimulibasedir '/ANsigdir'],[stimulibasedir '/000filelist.txt'], '/Users/lss/Documents/MATLAB/SoundFeatureToolbox/MakingSenseOfSounds/12610922/Logsheet_Development.csv', 1, 0.01, [stimulibasedir '/000ANdata.mat'], 1) ;
+>> convertAN([stimulibasedir '/ANsigdir_100_16'],[stimulibasedir '/0000allfiles.txt'], '/Users/lss/Documents/MATLAB/SoundFeatureToolbox/MakingSenseOfSounds/12610922/Logsheet_Development.csv', 2, 0.01, [stimulibasedir '/000ANdata_2.mat'], 1) ;
+>> dataset = 'dataset/AllSounds/000ANdata.mat' ;
+>> segdir = '/Users/lss/Documents/MATLAB/ESNEKMs_version1/dataset/AllSounds/0000segments'
+>> run_ESNEKN_segs(dataset, 0.75, segdir, [350], [0.1], [150], [300]) ;

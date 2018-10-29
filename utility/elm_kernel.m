@@ -137,7 +137,7 @@ if Elm_Type == CLASSIFIER
     conf_matrix = zeros(number_class) ;
     for i = 1 : size(TV.T, 2)
         [x, label_index_expected]=max(TV.T(:,i));
-        [x, label_index_actual]=max(TY(:,i));
+        [x, label_index_actual]=max(TY(:,i)); % we can record the testing result here 
         conf_matrix(label_index_expected, label_index_actual) = conf_matrix(label_index_expected, label_index_actual) + 1 ;
         if label_index_actual~=label_index_expected
             MissClassificationRate_Testing=MissClassificationRate_Testing+1;

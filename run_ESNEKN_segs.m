@@ -19,6 +19,7 @@ function run_ESNEKN_segs(indatafile, trainingfraction, segdir, re_size, leakage_
 % default values
 c_sent=[10000];
 g_sent=[7];
+verbose = false ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Write result to %%%%%%%%%%%%%%%%%
 outputfileprefix = 'outputfile_' ;
 
@@ -34,6 +35,9 @@ while(i<=size(varargin,2))
             i=i+1 ;
         case 'outputfileprefix'
             outputfileprefix =  varargin{i+1};
+            i=i+1 ;
+        case 'verbose'
+            verbose =  varargin{i+1};
             i=i+1 ;
          otherwise
             error('runESNEKN: Unknown argument %s given',varargin{i});
@@ -91,6 +95,7 @@ training_label=cell2mat(training_label(:));
 testdataindex = 1 ;
 testing_Data = cell(1,testdatalength * 50) ;
 testing_label = cell(1,testdatalength * 50) ;
+testing_soundfilename = cell(1,testdatalength ) ;
 for (testindex = traindatalength + 1:datalength)
     fname = alldata.filelist{testindex} ;
     % get the stem of the file name
@@ -106,6 +111,7 @@ for (testindex = traindatalength + 1:datalength)
         % add this segment and its label to the testing data
         testing_Data{testdataindex} = testingsegment ;
         testing_label(testdataindex) = alldata.outdatacells(testindex,2) ;
+        testing_soundfilename{testdataindex} = filenameelements{1} ;
         testdataindex = testdataindex + 1 ;
     end % for
 end % for
@@ -144,42 +150,44 @@ for i=1 : length(re_size)
                             
                             %%%%%%%%%%%%%% Constructing the Network %%%%%%%%%%%% 
                             net = Esn( re_size(i) , leakage_rate(c) , no_input_dimensions , win_scl(d_win) ,  w_scl(c_w)) ;
-                            disp(['====================ESN===========================' newline]);
-                            
-                            disp(['Reservoir Size = ' num2str(re_size(i)) '   Leakage Rate = ' num2str(leakage_rate(c)) newline 'Input dimensions = '  num2str(no_input_dimensions) ...
-                                ' Win Scaler =  '  num2str(win_scl(d_win)) ' Wreservoir Scaler = ' num2str(w_scl(c_w))  ]);   
-                            disp(['=================================================' newline]);
-
-                            %%%%%%%%%%%%%% Passing the training Data to the Network and Collecting the reservoir's responce on reservoirrResponceTraining %%%%%%%%%%%%
-                            disp([newline 'Feeding the training data to the network' newline]);
+                            if verbose
+                                disp(['====================ESN===========================' newline]);
+                                
+                                disp(['Reservoir Size = ' num2str(re_size(i)) '   Leakage Rate = ' num2str(leakage_rate(c)) newline 'Input dimensions = '  num2str(no_input_dimensions) ...
+                                    ' Win Scaler =  '  num2str(win_scl(d_win)) ' Wreservoir Scaler = ' num2str(w_scl(c_w))  ]);
+                                disp(['=================================================' newline]);
+                                
+                                %%%%%%%%%%%%%% Passing the training Data to the Network and Collecting the reservoir's responce on reservoirrResponceTraining %%%%%%%%%%%%
+                                disp([newline 'Feeding the training data to the network' newline]);
+                            end
                             istrain=true;
                             [reservoirrResponceTraining]=net.runReservoir(training_Data,istrain);
-                                                      
-                            %%%%%%%%%%%%%% Passing the Test Data to the Network and Collecting the reservoir's responce on reservoirrResponceTest %%%%%%%%%%%%
-                            disp([newline 'Feeding the Test data to the network ' newline]);
-                            
+                            if verbose
+                                %%%%%%%%%%%%%% Passing the Test Data to the Network and Collecting the reservoir's responce on reservoirrResponceTest %%%%%%%%%%%%
+                                disp([newline 'Feeding the Test data to the network ' newline]);
+                            end
                             istrain=false;
                             [reservoirrResponceTest]=net.runReservoir(testing_Data,istrain);
                             
                             %%%%%%%%%%%%%%%%%%%%%% ESNEKMs  %%%%%%%%%%%%%%%
- 
-                            disp([newline '====================ESNEKMs===========================' newline]);
-                            
+                            if verbose
+                                disp([newline '====================ESNEKMs===========================' newline]);
+                            end
                             dlmwrite('train_Data_extreme.csv', [training_label reservoirrResponceTraining]);
                             dlmwrite('test_Data_extreme.csv', [testing_label reservoirrResponceTest]);
                             
                             [ accuracyTraining_ESNEKMs, accuracyTesting_ESNEKMs, conf_matrix] = ...
                                 elm_kernel('train_Data_extreme.csv', 'test_Data_extreme.csv', 1, c_sent(cos), 'RBF_kernel',g_sent(g));
-                            
-                            disp([' ESNEKMs on Training =     ' num2str(accuracyTraining_ESNEKMs)]);
-                            disp([' ESNEKMs on Testing =     ' num2str(accuracyTesting_ESNEKMs)]);
-                            disp(' Kernel type =     RBF_kernel ');
-                            disp(' Kernel Parameters:');
-                            disp([' C =     ' num2str(c_sent(cos))]);
-                            disp([' g =     ' num2str(g_sent(g))]);
-                            
+                            if verbose
+                                disp([' ESNEKMs on Training =     ' num2str(accuracyTraining_ESNEKMs)]);
+                                disp([' ESNEKMs on Testing =     ' num2str(accuracyTesting_ESNEKMs)]);
+                                disp(' Kernel type =     RBF_kernel ');
+                                disp(' Kernel Parameters:');
+                                disp([' C =     ' num2str(c_sent(cos))]);
+                                disp([' g =     ' num2str(g_sent(g))]);
+                            end
                             % temporary
-                            conf_matrix
+                            % conf_matrix
                              disp([newline '==================== Run : ' num2str(b) ' / '  num2str(numberOfRuns) '    Ends ===========================' newline]);
                             result(b,1:2)=[accuracyTraining_ESNEKMs,accuracyTesting_ESNEKMs];
                         end
