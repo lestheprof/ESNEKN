@@ -5,3 +5,4 @@
 >> dataset = 'dataset/AllSounds/000ANdata.mat' ;
 >> segdir = '/Users/lss/Documents/MATLAB/ESNEKMs_version1/dataset/AllSounds/0000segments'
 >> run_ESNEKN_segs(dataset, 0.75, segdir, [350], [0.1], [150], [300]) ;
+>>stimulibasedir = '/Users/lss/Documents/MATLAB/ESNEKMs_version1/dataset/AllSounds' ;
